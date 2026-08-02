@@ -56,7 +56,10 @@ public class User {
      * Maximum length is 50 characters.
      * </p>
      */
-    @Column(unique = true, nullable = false, length = 50, name = "login")
+    @Column(unique = true,
+            nullable = false,
+            length = 50,
+            name = "login")
     private String login;
 
     /**
@@ -66,7 +69,8 @@ public class User {
      * (e.g., BCrypt, Argon2). Cannot be null.
      * </p>
      */
-    @Column(nullable = false, name = "password")
+    @Column(nullable = false,
+            name = "password")
     private String password;
 
     /**
@@ -76,7 +80,9 @@ public class User {
      * Maximum length is 100 characters. Cannot be null.
      * </p>
      */
-    @Column(name = "user_name", nullable = false, length = 100)
+    @Column(name = "user_name",
+            nullable = false,
+            length = 100)
     private String userName;
 
     /**
@@ -87,7 +93,10 @@ public class User {
      * Maximum length is 100 characters.
      * </p>
      */
-    @Column(unique = true, nullable = false, length = 100, name = "email")
+    @Column(unique = true,
+            nullable = false,
+            length = 100,
+            name = "email")
     private String email;
 
     /**
@@ -108,6 +117,7 @@ public class User {
      * </p>
      */
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at",
+            updatable = false)
     private LocalDateTime createdAt;
 }

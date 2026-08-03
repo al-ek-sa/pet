@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>LinkUp</title>
+  <link rel="stylesheet" href="../css/auth_client.css">
+</head>
+<body>
+<div class="split">
+  <div class="left">
+    <h1 id="back-h1">LinkUp</h1>
+    <h2 id="back-h2">Find your tribe</h2>
+  </div>
+  <div class="right">
+    <div class="auth-form">
+      <h2>Register</h2>
+      <p class="subtitle">Enter your email address</p>
+      <form>
+        <label for="login">Email</label>
+        <input type="text" id="login" placeholder="john@example.com">
+        <button type="submit" class="btn" onclick="goToRegistrationCode()">Register</button>
+      </form>
+      <div class="register-link">
+        Do you have an account? <a href="auth_client.html">Go to account login</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function goToRegistrationCode() {
+    window.location.href = "registration_code.html";
+  }
+</script>
+</body>
+</html>

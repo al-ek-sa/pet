@@ -1,6 +1,7 @@
 package org.example.authservice;
 
 import org.example.authservice.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -31,7 +32,7 @@ import java.util.UUID;
  * @see org.springframework.data.jpa.repository.JpaRepository
  */
 @Repository
-public interface UserRepository {
+public interface UserRepository extends JpaRepository<User, UUID> {
 
     /**
      * Finds a user by their login using native SQL query.
@@ -89,9 +90,4 @@ public interface UserRepository {
      */
     @Query(value = "SELECT * FROM users WHERE id = :id", nativeQuery = true)
     Optional<User> findByIdNative(@Param("id") UUID id);
-
-//    @Query(value = "SELECT * FROM users WHERE login = :login AND password = :password",
-//            nativeQuery = true)
-//    Optional<User> findByLoginAndPassword(@Param("login") String login,
-//                                          @Param("password") String password);
 }

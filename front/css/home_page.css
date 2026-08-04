@@ -1,0 +1,23 @@
+* {
+  margin: 0;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+#user {
+  color: white;
+  font-size: 0.2em;
+  font-family: 'Playfair Display', serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-image: url("../img/back.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}

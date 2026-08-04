@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>LinkUp</title>
-  <link rel="stylesheet" href="../css/auth_client.css">
+  <link rel="stylesheet" href="../../css/auth_client.css">
 </head>
 <body>
 <div class="split">
@@ -14,10 +14,11 @@
   <div class="right">
     <div class="auth-form">
       <h2>Register</h2>
-      <p class="subtitle">Enter code</p>
+      <p class="subtitle">Enter your email address</p>
       <form>
-<!--        -->
-        <button type="submit" class="btn" onclick="goToRegisterLabel()">Register</button>
+        <label for="login">Email</label>
+        <input type="text" id="login" placeholder="john@example.com">
+        <button type="button" class="btn" onclick="goToRegistrationCode()">Register</button>
       </form>
       <div class="register-link">
         Do you have an account? <a href="auth_client.html">Go to account login</a>
@@ -26,8 +27,6 @@
   </div>
 </div>
 
-<script>
-
-</script>
+<script src="../../js/vendor/auth_client.js"></script>
 </body>
 </html>

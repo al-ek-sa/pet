@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>LinkUp</title>
-  <link rel="stylesheet" href="../css/auth_client.css">
+  <link rel="stylesheet" href="../../css/auth_client.css">
 </head>
 <body>
 <div class="split">
@@ -20,7 +20,7 @@
         <input type="text" id="login" placeholder="john*-*john">
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="••••••••">
-        <button type="submit" class="btn">Sign In</button>
+        <button type="button" class="btn" onclick="goToHomePage()">Sign In</button>
       </form>
       <div class="register-link">
         Don't have an account? <a href="register.html">Create one</a>
@@ -28,5 +28,6 @@
     </div>
   </div>
 </div>
+<script src="../../js/vendor/auth_client.js"></script>
 </body>
 </html>

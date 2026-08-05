@@ -1,6 +1,6 @@
 package org.example.authservice;
 
-import org.example.authservice.entity.User;
+import org.example.authservice.bd.entity.User;
 import org.example.authservice.gmail.servise.AuthService;
 import org.example.authservice.bd.service.UserService;
 import org.springframework.boot.SpringApplication;

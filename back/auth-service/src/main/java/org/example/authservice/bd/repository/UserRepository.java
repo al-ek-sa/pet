@@ -1,6 +1,6 @@
-package org.example.authservice.repository;
+package org.example.authservice.bd.repository;
 
-import org.example.authservice.entity.User;
+import org.example.authservice.bd.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -44,6 +44,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param login the unique login of the user to search for
      * @return an {@link Optional} containing the found user, or empty if not found
      */
+    //todo
     @Query(value = "SELECT * FROM users WHERE login = :login", nativeQuery = true)
     Optional<User> findByLoginNative(@Param("login") String login);
 
@@ -58,8 +59,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @return a {@link List} of users matching the search criteria,
      *         empty list if no matches found
      */
-    @Query(value = "SELECT * FROM users WHERE user_name LIKE %:user_name%", nativeQuery = true)
-    List<User> findByUserNameNative(@Param("user_name") String userName);
+    //todo
+    @Query(value = "SELECT id FROM users WHERE user_name LIKE %:user_name%", nativeQuery = true)
+    List<UUID> findByUserNameNative(@Param("user_name") String userName);
 
     /**
      * Finds a user by both login and email combination.
@@ -73,21 +75,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @return an {@link Optional} containing the user if both login and email match,
      *         empty if no user found with the specified combination
      */
+    //todo
     @Query(value = "SELECT * FROM users WHERE login = :login and email = :email", nativeQuery = true)
     Optional<User> findByLoginAndEmailNative(@Param("login") String login,
                                              @Param("email") String email);
-
-    /**
-     * Finds a user by their unique identifier (UUID).
-     * <p>
-     * Performs a direct lookup by the primary key "id" column.
-     * This is the most efficient query as it uses the primary key index.
-     * </p>
-     *
-     * @param id the UUID of the user to find
-     * @return an {@link Optional} containing the found user,
-     *         empty if no user exists with the given ID
-     */
-    @Query(value = "SELECT * FROM users WHERE id = :id", nativeQuery = true)
-    Optional<User> findByIdNative(@Param("id") UUID id);
 }

@@ -28,7 +28,6 @@ import java.util.UUID;
  *
  * @author Lishyk Aliaksandra
  * @version 1.0
- * @see org.springframework.security.core.userdetails.UserDetails
  */
 @Entity
 @Table(name = "users")

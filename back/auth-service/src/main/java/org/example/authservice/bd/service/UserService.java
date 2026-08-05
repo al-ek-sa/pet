@@ -1,4 +1,4 @@
-package org.example.authservice.service;
+package org.example.authservice.bd.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.authservice.repository.UserRepository;
@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +32,10 @@ public class UserService {
     @Transactional
     public List<User> findAll(){
         return userRepository.findAll();
+    }
+
+    @Transactional
+    public Optional<User> findByLoginAndEmail(String login, String email){
+        return userRepository.findByLoginAndEmailNative(login, email);
     }
 }

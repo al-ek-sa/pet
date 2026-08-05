@@ -1,7 +1,8 @@
 package org.example.authservice;
 
 import org.example.authservice.entity.User;
-import org.example.authservice.service.UserService;
+import org.example.authservice.gmail.servise.AuthService;
+import org.example.authservice.bd.service.UserService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -13,14 +14,13 @@ public class AuthServiceApplication {
         ConfigurableApplicationContext context = SpringApplication.run(AuthServiceApplication.class, args);
         UserService userService = context.getBean(UserService.class);
         User user = User.builder()
-                .login("alexa1")
-                .password("password1231")
-                .userName("Aliaksandra1")
-                .email("alid@gmail.com")
+                .login("alex32a1adsd1")
+                .password("password12233ad2ad1")
+                .userName("Aliaks234aaddndras2")
+                .email("lishik135@gmail.com")
                 .active(true)
                 .build();
-        userService.save(user);
-
-        System.out.println(userService.findAll());
+        AuthService authService = context.getBean(AuthService.class);
+        authService.registerUser(user);
     }
 }

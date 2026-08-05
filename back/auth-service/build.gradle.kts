@@ -35,6 +35,7 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.resend:resend-java:2.0.0")
 }
 
 tasks.withType<Test> {

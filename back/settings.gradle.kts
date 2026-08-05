@@ -1,4 +1,4 @@
-rootProject.name = "social_network"
+rootProject.name = "back"
 
 include(
     "common-module",

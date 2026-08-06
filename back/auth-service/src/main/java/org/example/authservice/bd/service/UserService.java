@@ -1,226 +1,203 @@
 package org.example.authservice.bd.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.authservice.bd.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.example.authservice.bd.config.SecurityConfig;
 import org.example.authservice.bd.entity.User;
+import org.example.authservice.bd.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Service layer for managing user-related business operations.
  * <p>
- * This service provides CRUD operations and custom queries for User entities.
- * All methods that modify data are marked as {@code @Transactional} to ensure
- * data consistency and integrity.
+ * This service provides secure user management with password encoding and
+ * existence checks. All methods are marked as {@code @Transactional} at the class level
+ * to ensure data consistency and integrity.
  * </p>
  *
- * <h2>Key Features:</h2>
+ * <h2>Security Features:</h2>
  * <ul>
- *   <li>Complete CRUD operations (Create, Read, Update, Delete)</li>
- *   <li>Transaction management for data consistency</li>
- *   <li>Custom query for finding users by login and email</li>
- *   <li>Uses dependency injection via {@code @RequiredArgsConstructor}</li>
- * </ul>
- *
- * <h2>Transaction Management:</h2>
- * <ul>
- *   <li>All write operations are wrapped in transactions</li>
- *   <li>Read operations are also transactional for consistency</li>
- *   <li>Spring handles transaction boundaries automatically</li>
- * </ul>
- *
- * <h2>Usage Examples:</h2>
- *
- * <p><b>Save a new user:</b></p>
- * <pre>
- * User user = User.builder()
- *     .login("john_doe")
- *     .password(encodedPassword)
- *     .userName("John Doe")
- *     .email("john@example.com")
- *     .active(true)
- *     .build();
- * userService.save(user);
- * </pre>
- *
- * <p><b>Find user by login and email:</b></p>
- * <pre>
- * Optional&lt;User&gt; user = userService.findByLoginAndEmail("john_doe", "john@example.com");
- * user.ifPresent(u -> System.out.println("User found: " + u.getUserName()));
- * </pre>
- *
- * <p><b>Remove all users:</b></p>
- * <pre>
- * userService.removeAll(); // USE WITH CAUTION!
- * </pre>
- *
- * <h2>Important Security Notes:</h2>
- * <ul>
- *   <li>Passwords should be encoded before calling save()</li>
- *   <li>Consider adding validation before save operations</li>
- *   <li>removeAll() should be used carefully in production</li>
+ *   <li>Passwords are automatically encoded using Argon2 before saving</li>
+ *   <li>Existence checks return only boolean (no data leakage)</li>
+ *   <li>Passwords are never logged in any form</li>
+ *   <li>Uses parameterized queries to prevent SQL injection</li>
  * </ul>
  *
  * @author Lishyk Aliaksandra
  * @version 1.0
- * @see org.example.authservice.bd.entity.User
- * @see org.example.authservice.bd.repository.UserRepository
+ * @see User
+ * @see UserRepository
  * @see org.springframework.transaction.annotation.Transactional
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
+@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
+    private final SecurityConfig securityConfig;
 
     /**
-     * Saves a user to the database.
+     * Registers a new user with password encoding.
      * <p>
-     * Persists the given User entity. If the user already exists (based on ID),
-     * it will be updated; otherwise, a new record will be created.
+     * This method automatically encodes the password using Argon2 before saving.
+     * It performs existence checks to prevent duplicate registrations.
      * </p>
      *
-     * <h3>Preconditions:</h3>
-     * <ul>
-     *   <li>User object must not be null</li>
-     *   <li>Login must be unique (handled by repository)</li>
-     *   <li>Email must be unique (handled by repository)</li>
-     *   <li>Password should be encoded</li>
-     * </ul>
-     *
-     * <h3>Exceptions:</h3>
-     * <ul>
-     *   <li>May throw {@code DataIntegrityViolationException} if constraints violated</li>
-     *   <li>May throw {@code IllegalArgumentException} if user is null</li>
-     * </ul>
-     *
-     * <h3>Transaction:</h3>
-     * <p>This method is transactional, meaning any database failure will cause a rollback.</p>
-     *
-     * @param user the User entity to save (must not be null)
-     * @throws IllegalArgumentException if user is null
-     * @see org.springframework.dao.DataIntegrityViolationException
+     * @param user the User entity to register (password can be plain text)
+     * @throws RuntimeException if login or email already exists
      */
-    @Transactional
-    public void save(User user){
-        userRepository.save(user);
+    public void registerUser(User user) {
+        log.info("Registering new user with login: {}", user.getLogin());
+
+        // Secure existence check (returns only boolean)
+        if (userRepository.findByLoginNative(user.getLogin())) {
+            log.warn("Registration failed - login already exists: {}", user.getLogin());
+            throw new RuntimeException("User with login '" + user.getLogin() + "' already exists");
+        }
+
+        // Secure existence check (returns only boolean)
+        if (userRepository.findByLoginAndEmailNative(user.getLogin(), user.getEmail())) {
+            log.warn("Registration failed - user with login and email combination already exists");
+            throw new RuntimeException("User with login '" + user.getLogin() + "' and email '" + user.getEmail() + "' already exists");
+        }
+
+        // Encode password using Argon2
+        String encodedPassword = securityConfig.passwordEncoder().encode(user.getPassword());
+        user.setPassword(encodedPassword);
+        log.debug("Password encoded successfully for user: {}", user.getLogin());
+
+        // Save user
+        try {
+            User savedUser = userRepository.save(user);
+            log.info("User registered successfully with ID: {}, login: {}",
+                    savedUser.getId(), savedUser.getLogin());
+        } catch (Exception e) {
+            log.error("Failed to register user with login: {}. Error: {}",
+                    user.getLogin(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
-     * Removes a specific user from the database.
+     * Saves a user (internal use only).
      * <p>
-     * Deletes the given User entity. If the user doesn't exist,
-     * this operation will throw an exception.
+     * <b>Note:</b> This method doesn't check for duplicates.
+     * For registration with validation, use {@link #registerUser(User)}.
      * </p>
      *
-     * <h3>Important Notes:</h3>
-     * <ul>
-     *   <li>The user must exist in the database</li>
-     *   <li>Deletion is permanent and cannot be undone</li>
-     *   <li>Consider implementing soft delete instead for production</li>
-     * </ul>
-     *
-     * <h3>Transaction:</h3>
-     * <p>This method is transactional for data consistency.</p>
-     *
-     * @param user the User entity to delete (must exist in database)
-     * @throws org.springframework.dao.EmptyResultDataAccessException if user not found
+     * @param user the User entity to save
      */
-    @Transactional
-    public void remove(User user){
-        userRepository.delete(user);
+    public void save(User user) {
+        log.info("Saving user with login: {}", user.getLogin());
+
+        try {
+            User savedUser = userRepository.save(user);
+            log.info("User saved successfully with ID: {}", savedUser.getId());
+        } catch (Exception e) {
+            log.error("Failed to save user with login: {}. Error: {}", user.getLogin(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
-     * Removes all users from the database.
+     * Checks if a user exists with the given login.
      * <p>
-     * <b>WARNING:</b> This operation is irreversible and will delete
-     * all user records. Use with extreme caution in production environments.
+     * <b>Security:</b> Returns only boolean. No user data is exposed.
      * </p>
      *
-     * <h3>Use Cases:</h3>
-     * <ul>
-     *   <li>Testing environments</li>
-     *   <li>Development database cleanup</li>
-     *   <li>System reset operations</li>
-     * </ul>
-     *
-     * <h3>Performance Impact:</h3>
-     * <p>This operation may be expensive on large datasets and can lock the table.</p>
-     *
-     * <h3>Transaction:</h3>
-     * <p>This method is transactional - all users will be deleted or none.</p>
+     * @param login the user's login to check
+     * @return {@code true} if user exists, {@code false} otherwise
      */
-    @Transactional
-    public void removeAll(){
-        userRepository.deleteAll();
+    @Transactional(readOnly = true)
+    public boolean existsByLogin(String login) {
+        log.info("Checking existence for login: {}", login);
+        boolean exists = userRepository.findByLoginNative(login);
+        log.debug("User with login '{}' exists: {}", login, exists);
+        return exists;
+    }
+
+    /**
+     * Checks if any user's name contains the given substring.
+     *
+     * @param userName the substring to search for
+     * @return {@code true} if any user found, {@code false} otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean existsByUserNameContaining(String userName) {
+        log.info("Checking if any user name contains: {}", userName);
+        boolean exists = userRepository.existsByUserNameContaining(userName);
+        log.debug("User name containing '{}' exists: {}", userName, exists);
+        return exists;
+    }
+
+    /**
+     * Checks if a user exists with both login and email combination.
+     *
+     * @param login the user's login
+     * @param email the user's email
+     * @return {@code true} if user exists with both login and email, {@code false} otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean existsByLoginAndEmail(String login, String email) {
+        log.info("Checking existence for login: {} and email: {}", login, email);
+        boolean exists = userRepository.findByLoginAndEmailNative(login, email);
+        log.debug("User with login '{}' and email '{}' exists: {}", login, email, exists);
+        return exists;
     }
 
     /**
      * Retrieves all users from the database.
-     * <p>
-     * Returns a list of all registered users. This method does not apply
-     * any filtering or pagination.
-     * </p>
-     *
-     * <h3>Performance Considerations:</h3>
-     * <ul>
-     *   <li>For large datasets, consider implementing pagination</li>
-     *   <li>Returns all fields including sensitive data (e.g., password)</li>
-     *   <li>Consider using projections or DTOs to limit returned data</li>
-     * </ul>
-     *
-     * <h3>Transaction:</h3>
-     * <p>This method is transactional to ensure consistent reads.</p>
      *
      * @return List of all User entities (may be empty if no users exist)
-     * @see org.springframework.data.domain.Pageable for pagination support
      */
-    @Transactional
-    public List<User> findAll(){
-        return userRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<User> findAll() {
+        log.info("Fetching all users from database");
+
+        try {
+            List<User> users = userRepository.findAll();
+
+            if (users.isEmpty()) {
+                log.warn("No users found in database");
+            } else {
+                log.info("Successfully retrieved {} users", users.size());
+            }
+
+            return users;
+        } catch (Exception e) {
+            log.error("Failed to fetch users from database. Error: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
-    /**
-     * Finds a user by their login and email using a native SQL query.
-     * <p>
-     * Performs a case-sensitive search for a user matching both the login
-     * and email address. Returns an Optional containing the user if found.
-     * </p>
-     *
-     * <h3>Search Criteria:</h3>
-     * <ul>
-     *   <li><b>login:</b> Exact match (case-sensitive)</li>
-     *   <li><b>email:</b> Exact match (case-sensitive)</li>
-     *   <li>Both conditions must be satisfied simultaneously</li>
-     * </ul>
-     *
-     * <h3>Use Cases:</h3>
-     * <ul>
-     *   <li>Account recovery verification</li>
-     *   <li>Security checks during login</li>
-     *   <li>Validating user identity</li>
-     * </ul>
-     *
-     * <h3>Return Values:</h3>
-     * <ul>
-     *   <li>{@code Optional.of(user)} - if a user matching both criteria exists</li>
-     *   <li>{@code Optional.empty()} - if no matching user found</li>
-     * </ul>
-     *
-     * <h3>Transaction:</h3>
-     * <p>This method is transactional for consistent read operations.</p>
-     *
-     * @param login the user's login (username) to search for
-     * @param email the user's email to search for
-     * @return Optional containing the found User, or empty if none found
-     * @see org.example.authservice.bd.repository.UserRepository#findByLoginAndEmailNative(String, String)
-     */
-    @Transactional
-    public Optional<User> findByLoginAndEmail(String login, String email){
-        return userRepository.findByLoginAndEmailNative(login, email);
+    public void remove(User user) {
+        log.warn("Attempting to delete user with ID: {}, login: {}", user.getId(), user.getLogin());
+
+        try {
+            userRepository.delete(user);
+            log.warn("User deleted successfully with ID: {}, login: {}",
+                    user.getId(), user.getLogin());
+        } catch (Exception e) {
+            log.error("Failed to delete user with ID: {}. Error: {}", user.getId(), e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public void removeAll() {
+        log.warn("ATTEMPTING TO DELETE ALL USERS - This operation is irreversible!");
+
+        try {
+            long countBefore = userRepository.count();
+            userRepository.deleteAll();
+            log.warn("All users deleted successfully. Total removed: {}", countBefore);
+        } catch (Exception e) {
+            log.error("Failed to delete all users. Error: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }

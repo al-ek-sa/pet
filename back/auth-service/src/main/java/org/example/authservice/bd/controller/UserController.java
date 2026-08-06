@@ -1,6 +1,7 @@
 package org.example.authservice.bd.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.authservice.bd.entity.User;
 import org.example.authservice.bd.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,14 @@ import java.util.List;
  *   <li>Simple CRUD operations for User entity</li>
  *   <li>Uses dependency injection via {@code @RequiredArgsConstructor}</li>
  *   <li>Returns simple string responses for operation status</li>
+ *   <li>Comprehensive logging with SLF4J</li>
  * </ul>
+ *
+ * <h2>Logging Configuration:</h2>
+ * <p>To enable detailed logging, add to {@code application.properties}:</p>
+ * <pre>
+ * logging.level.org.example.authservice.bd.controller.UserController=DEBUG
+ * </pre>
  *
  * <p><b>Note:</b> This is a basic controller. For production use, consider adding:</p>
  * <ul>
@@ -70,6 +78,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -89,6 +98,14 @@ public class UserController {
      *   <li><b>active:</b> Optional, defaults to true</li>
      * </ul>
      *
+     * <h3>Logging:</h3>
+     * <ul>
+     *   <li><b>INFO:</b> User creation attempt and success</li>
+     *   <li><b>DEBUG:</b> User details (excluding password)</li>
+     *   <li><b>WARN:</b> Potential issues during creation</li>
+     *   <li><b>ERROR:</b> Failed user creation</li>
+     * </ul>
+     *
      * <h3>Important Security Note:</h3>
      * <p>Passwords should be encoded using BCrypt or similar before saving.
      * Consider using {@code @Valid} annotation for input validation.</p>
@@ -105,8 +122,19 @@ public class UserController {
      */
     @PostMapping
     public String addUser(@RequestBody User user) {
-        userService.save(user);
-        return "User added successfully!";
+        log.info("Received request to create new user with login: {}", user.getLogin());
+        log.debug("User details - login: {}, email: {}, userName: {}",
+                user.getLogin(), user.getEmail(), user.getUserName());
+
+        try {
+            userService.save(user);
+            log.info("User created successfully with login: {}", user.getLogin());
+            return "User added successfully!";
+        } catch (Exception e) {
+            log.error("Failed to create user with login: {}. Error: {}",
+                    user.getLogin(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
@@ -115,6 +143,14 @@ public class UserController {
      * Returns all users from the database. In production, consider
      * implementing pagination to handle large datasets.
      * </p>
+     *
+     * <h3>Logging:</h3>
+     * <ul>
+     *   <li><b>INFO:</b> Request to fetch all users</li>
+     *   <li><b>DEBUG:</b> Number of users found</li>
+     *   <li><b>WARN:</b> Empty result set</li>
+     *   <li><b>ERROR:</b> Failed to fetch users</li>
+     * </ul>
      *
      * <h3>Response Format:</h3>
      * <p>Returns a JSON array of User objects. Password field is included
@@ -146,6 +182,22 @@ public class UserController {
      */
     @GetMapping
     public List<User> findAllUsers(){
-        return userService.findAll();
+        log.info("Received request to fetch all users");
+
+        try {
+            List<User> users = userService.findAll();
+            log.debug("Found {} users in database", users.size());
+
+            if (users.isEmpty()) {
+                log.warn("No users found in database");
+            } else {
+                log.info("Successfully retrieved {} users", users.size());
+            }
+
+            return users;
+        } catch (Exception e) {
+            log.error("Failed to fetch users: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }

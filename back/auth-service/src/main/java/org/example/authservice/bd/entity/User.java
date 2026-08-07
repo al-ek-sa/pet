@@ -205,8 +205,7 @@ public class User {
      *
      * @see jakarta.validation.constraints.Email
      */
-    @Column(unique = true,
-            nullable = false,
+    @Column(nullable = false,
             length = 100,
             name = "email")
     private String email;

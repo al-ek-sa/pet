@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.authservice.bd.entity.User;
 import org.example.authservice.bd.service.UserService;
+import org.example.authservice.dto.LoginRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -127,7 +128,7 @@ public class UserController {
                 user.getLogin(), user.getEmail(), user.getUserName());
 
         try {
-            userService.save(user);
+            userService.registerUser(user);
             log.info("User created successfully with login: {}", user.getLogin());
             return "User added successfully!";
         } catch (Exception e) {
@@ -199,5 +200,12 @@ public class UserController {
             log.error("Failed to fetch users: {}", e.getMessage(), e);
             throw e;
         }
+    }
+    @PostMapping("/login")
+    public boolean findByLoginAndPassword(@RequestBody LoginRequest request) {
+        return userService.findByLoginAndPassword(
+                request.getLogin(),
+                request.getPassword()
+        );
     }
 }

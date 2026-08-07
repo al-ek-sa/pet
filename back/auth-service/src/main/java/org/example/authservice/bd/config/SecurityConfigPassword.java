@@ -6,7 +6,7 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-public class SecurityConfig {
+public class SecurityConfigPassword {
 
     @Bean
     public PasswordEncoder passwordEncoder(){

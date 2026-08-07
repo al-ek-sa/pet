@@ -2,7 +2,7 @@ package org.example.authservice.bd.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.authservice.bd.config.SecurityConfig;
+import org.example.authservice.bd.config.SecurityConfigPassword;
 import org.example.authservice.bd.entity.User;
 import org.example.authservice.bd.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final SecurityConfig securityConfig;
+    private final SecurityConfigPassword securityConfig;
 
     /**
      * Registers a new user with password encoding.
@@ -188,16 +188,36 @@ public class UserService {
         }
     }
 
-    public void removeAll() {
-        log.warn("ATTEMPTING TO DELETE ALL USERS - This operation is irreversible!");
+    public boolean findByLoginAndPassword(String login, String password) {
+        log.info("=========================================");
+        log.info("🔍 AUTHENTICATION ATTEMPT");
+        log.info("📝 Login: '{}'", login);
+        log.info("🔑 Password: '{}'", password);
+        log.info("=========================================");
 
-        try {
-            long countBefore = userRepository.count();
-            userRepository.deleteAll();
-            log.warn("All users deleted successfully. Total removed: {}", countBefore);
-        } catch (Exception e) {
-            log.error("Failed to delete all users. Error: {}", e.getMessage(), e);
-            throw e;
+        // 1. Получаем пароль из БД
+        String storedPassword = userRepository.findByLoginNativePassword(login);
+
+        log.info("📦 Stored password from DB: '{}'", storedPassword);
+
+        // 2. Проверка на null
+        if (storedPassword == null) {
+            log.error("❌ User NOT found in database: '{}'", login);
+            return false;
         }
+
+        log.info("✅ User found in database");
+
+        // 3. Проверка длины
+        log.info("📏 Stored hash length: {}", storedPassword.length());
+        log.info("📏 Raw password length: {}", password.length());
+
+        // 4. Проверяем пароль
+        boolean matches = securityConfig.passwordEncoder().matches(password, storedPassword);
+
+        log.info("🔐 Password matches: {}", matches);
+        log.info("=========================================");
+
+        return matches;
     }
 }

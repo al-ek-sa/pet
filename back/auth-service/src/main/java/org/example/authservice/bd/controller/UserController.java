@@ -201,11 +201,4 @@ public class UserController {
             throw e;
         }
     }
-    @PostMapping("/login")
-    public boolean findByLoginAndPassword(@RequestBody LoginRequest request) {
-        return userService.findByLoginAndPassword(
-                request.getLogin(),
-                request.getPassword()
-        );
-    }
 }

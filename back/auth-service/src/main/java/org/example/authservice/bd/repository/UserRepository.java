@@ -1,12 +1,14 @@
 package org.example.authservice.bd.repository;
 
 import org.example.authservice.bd.entity.User;
+import org.example.authservice.dto.LoginName;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -67,10 +69,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     @Query(value = "SELECT EXISTS (SELECT 1 FROM users WHERE login = :login)", nativeQuery = true)
     boolean findByLoginNative(@Param("login") String login);
-
-    @Query(value = "SELECT password FROM users WHERE login = :login", nativeQuery = true)
-    @Nullable
-    String findByLoginNativePassword(@Param("login") String login);
 
     /**
      * Checks if any user's display name contains the given substring.

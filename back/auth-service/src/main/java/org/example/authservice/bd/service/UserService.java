@@ -187,37 +187,4 @@ public class UserService {
             throw e;
         }
     }
-
-    public boolean findByLoginAndPassword(String login, String password) {
-        log.info("=========================================");
-        log.info("🔍 AUTHENTICATION ATTEMPT");
-        log.info("📝 Login: '{}'", login);
-        log.info("🔑 Password: '{}'", password);
-        log.info("=========================================");
-
-        // 1. Получаем пароль из БД
-        String storedPassword = userRepository.findByLoginNativePassword(login);
-
-        log.info("📦 Stored password from DB: '{}'", storedPassword);
-
-        // 2. Проверка на null
-        if (storedPassword == null) {
-            log.error("❌ User NOT found in database: '{}'", login);
-            return false;
-        }
-
-        log.info("✅ User found in database");
-
-        // 3. Проверка длины
-        log.info("📏 Stored hash length: {}", storedPassword.length());
-        log.info("📏 Raw password length: {}", password.length());
-
-        // 4. Проверяем пароль
-        boolean matches = securityConfig.passwordEncoder().matches(password, storedPassword);
-
-        log.info("🔐 Password matches: {}", matches);
-        log.info("=========================================");
-
-        return matches;
-    }
 }

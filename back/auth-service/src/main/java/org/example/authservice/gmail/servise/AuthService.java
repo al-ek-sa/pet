@@ -2,7 +2,6 @@ package org.example.authservice.gmail.servise;
 
 import lombok.RequiredArgsConstructor;
 import org.example.authservice.bd.entity.User;
-import org.example.authservice.bd.service.UserService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -154,27 +153,15 @@ public class AuthService {
      * <p>Consider making the email sending asynchronous to not block
      * the registration process.</p>
      *
-     * @param user the User entity to register (must have valid email)
      * @throws IllegalArgumentException if user or user.getEmail() is null
      * @see org.example.authservice.bd.service.UserService#save(User)
      * @see org.example.authservice.gmail.servise.EmailService#sendSimpleEmail(String, String, String)
      */
-    public void registerUser(User user) {
-        userService.save(user);
-        String html = String.format("""
-                <h1>Welcome to Auth Service!</h1>
-                <p>Hello <strong>%s</strong>,</p>
-                <p>Your account has been successfully created!</p>
-                <p>Login: %s</p>
-                <p>Email: %s</p>
-                """,
-                user.getUserName(),
-                user.getLogin(),
-                user.getEmail()
-        );
+    public void registerUser(String code, String email) {
+        String html = String.format(code);
 
         emailService.sendSimpleEmail(
-                user.getEmail(),
+                email,
                 "Welcome to Auth Service!",
                 html
         );

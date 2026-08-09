@@ -23,4 +23,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Modifying
     @Query(value = "UPDATE users SET password = :password WHERE login = :login", nativeQuery = true)
     int updatePassword(@Param("login") String login, @Param("password") String password);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM users WHERE login = :login and email = :email)", nativeQuery = true)
+    boolean existsByLoginAndEmail(@Param("login") String login, @Param("email") String email);
 }

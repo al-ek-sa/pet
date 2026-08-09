@@ -6,6 +6,8 @@ import com.resend.services.emails.model.SendEmailRequest;
 import com.resend.services.emails.model.SendEmailResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.authservice.bd.repository.UserRepository;
+import org.example.authservice.dto.EmailDtoTwo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -118,82 +120,12 @@ public class EmailService {
 
     private final Resend resend;
 
-    /**
-     * The sender email address for all outgoing emails.
-     * <p>
-     * This value is injected from application properties using the placeholder
-     * {@code ${resend.from.email}}. The email must be verified in Resend.
-     * </p>
-     *
-     * <h3>Configuration Example:</h3>
-     * <pre>
-     * resend.from.email=noreply@yourdomain.com
-     * </pre>
-     *
-     * <h3>Important Notes:</h3>
-     * <ul>
-     *   <li>The email must be verified in your Resend account</li>
-     *   <li>Use different sender emails for different environments</li>
-     *   <li>Consider using subdomain for email sending (e.g., mail.yourdomain.com)</li>
-     * </ul>
-     *
-     * @see org.springframework.beans.factory.annotation.Value
-     */
+
     @Value("${resend.from.email}")
     private String fromEmail;
 
-    /**
-     * Sends an HTML-formatted email to a single recipient.
-     * <p>
-     * This method creates a rich HTML email with support for formatting,
-     * images, links, and custom styling. The HTML content is passed as
-     * a string and embedded directly into the email body.
-     * </p>
-     *
-     * <h3>Request Parameters:</h3>
-     * <ul>
-     *   <li><b>to</b> - Recipient email address (can be a single address)</li>
-     *   <li><b>subject</b> - Email subject line</li>
-     *   <li><b>htmlContent</b> - HTML content for the email body</li>
-     * </ul>
-     *
-     * <h3>HTML Content Guidelines:</h3>
-     * <ul>
-     *   <li>Use valid HTML markup</li>
-     *   <li>Include inline CSS for better email client compatibility</li>
-     *   <li>Use responsive design for mobile devices</li>
-     *   <li>Test email templates across different email clients</li>
-     *   <li>Avoid external resources that may be blocked</li>
-     * </ul>
-     *
-     * <h3>Return Value:</h3>
-     * <p>Returns the unique email ID assigned by Resend. This ID can be used
-     * for tracking and debugging purposes.</p>
-     *
-     * <h3>Example HTML Content:</h3>
-     * <pre>
-     * String html = """
-     *     &lt;h1 style="color: #333;"&gt;Welcome!&lt;/h1&gt;
-     *     &lt;p&gt;Thank you for registering.&lt;/p&gt;
-     *     &lt;a href="<a href="https://yourapp.com/verify">...</a>"&gt;Verify Email&lt;/a&gt;
-     *     """;
-     * </pre>
-     *
-     * <h3>Error Handling:</h3>
-     * <ul>
-     *   <li>Wraps {@code ResendException} in {@code RuntimeException}</li>
-     *   <li>Logs detailed error message using SLF4J</li>
-     *   <li>Throws runtime exception for application-level handling</li>
-     * </ul>
-     *
-     * @param to recipient's email address
-     * @param subject email subject line
-     * @param htmlContent HTML content for the email body
-     * @return unique email ID from Resend
-     * @throws RuntimeException if email sending fails (wraps ResendException)
-     * @see SendEmailRequest
-     * @see SendEmailResponse
-     */
+    private final UserRepository repository;
+
     public String sendSimpleEmail(String to, String subject, String htmlContent) {
         try {
             SendEmailRequest request = SendEmailRequest.builder()
@@ -213,79 +145,8 @@ public class EmailService {
         }
     }
 
-    /**
-     * Sends a plain text email to a single recipient.
-     * <p>
-     * This method sends an email in plain text format without any HTML
-     * formatting. It is suitable for simple notifications, alerts, and
-     * system messages.
-     * </p>
-     *
-     * <h3>When to Use:</h3>
-     * <ul>
-     *   <li>System notifications and alerts</li>
-     *   <li>Simple informational messages</li>
-     *   <li>Logs and reports</li>
-     *   <li>Emails to legacy email clients</li>
-     *   <li>Automated system emails</li>
-     * </ul>
-     *
-     * <h3>When to Use HTML Instead:</h3>
-     * <ul>
-     *   <li>Marketing and promotional emails</li>
-     *   <li>Emails requiring formatting and styling</li>
-     *   <li>Emails with images or links</li>
-     *   <li>User-facing communications</li>
-     * </ul>
-     *
-     * <h3>Request Parameters:</h3>
-     * <ul>
-     *   <li><b>to</b> - Recipient email address</li>
-     *   <li><b>subject</b> - Email subject line</li>
-     *   <li><b>text</b> - Plain text content for the email body</li>
-     * </ul>
-     *
-     * <h3>Text Content Guidelines:</h3>
-     * <ul>
-     *   <li>Keep lines short (max 78 characters for compatibility)</li>
-     *   <li>Use line breaks for readability</li>
-     *   <li>Avoid special characters that may not render correctly</li>
-     *   <li>Include contact information for replies</li>
-     * </ul>
-     *
-     * <h3>Error Handling:</h3>
-     * <ul>
-     *   <li>Wraps {@code ResendException} in {@code RuntimeException}</li>
-     *   <li>Logs detailed error message using SLF4J</li>
-     *   <li>Throws runtime exception for application-level handling</li>
-     * </ul>
-     *
-     * <h3>Difference from HTML Email:</h3>
-     * <p>This method uses {@code .text()} instead of {@code .html()} in
-     * the request builder, resulting in a plain text email without any
-     * formatting or styling.</p>
-     *
-     * @param to recipient's email address
-     * @param subject email subject line
-     * @param text plain text content for the email body
-     * @throws RuntimeException if email sending fails (wraps ResendException)
-     * @see com.resend.services.emails.model.SendEmailRequest
-     */
-    public void sendTextEmail(String to, String subject, String text) {
-        try {
-            SendEmailRequest request = SendEmailRequest.builder()
-                    .from(fromEmail)
-                    .to(to)
-                    .subject(subject)
-                    .text(text)
-                    .build();
-
-            resend.emails().send(request);
-            log.info("Text email sent successfully to {}", to);
-
-        } catch (ResendException e) {
-            log.error("Failed to send text email to {}: {}", to, e.getMessage(), e);
-            throw new RuntimeException("Failed to send email to " + to, e);
-        }
+    public String sendEmail(EmailDtoTwo dto, String html){
+        if(repository.existsByLoginAndEmail(dto.getLogin(), dto.getEmail())) return sendSimpleEmail(dto.getEmail(),dto.getCode(), html);
+        return "fail";
     }
 }

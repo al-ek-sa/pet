@@ -1,6 +1,8 @@
 package org.example.authservice.gmail.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.authservice.dto.EmailDtoOne;
+import org.example.authservice.dto.EmailDtoTwo;
 import org.example.authservice.gmail.servise.EmailService;
 import org.springframework.web.bind.annotation.*;
 
@@ -83,81 +85,21 @@ public class EmailController {
 
     private final EmailService emailService;
 
-    /**
-     * Sends an email to a specified recipient.
-     * <p>
-     * This endpoint accepts three parameters: recipient email address,
-     * subject line, and the message body. The message is wrapped in
-     * a simple HTML template before sending.
-     * </p>
-     *
-     * <h3>Request Parameters:</h3>
-     * <ul>
-     *   <li><b>to</b> (required) - Recipient's email address</li>
-     *   <li><b>subject</b> (required) - Email subject line</li>
-     *   <li><b>message</b> (required) - Email body/content</li>
-     * </ul>
-     *
-     * <h3>Request Examples:</h3>
-     *
-     * <p><b>cURL:</b></p>
-     * <pre>
-     * curl -X POST "http://localhost:8080/api/email/send?to=user@example.com&subject=Welcome&message=Hello%20World"
-     * </pre>
-     *
-     * <p><b>JavaScript Fetch:</b></p>
-     * <pre>
-     * fetch('/api/email/send?to=user@example.com&subject=Hello&message=Test')
-     *   .then(response => response.text())
-     *   .then(data => console.log(data));
-     * </pre>
-     *
-     * <h3>Email Template:</h3>
-     * <pre>
-     * &lt;h2&gt;Test Email&lt;/h2&gt;
-     * &lt;p&gt;{message}&lt;/p&gt;
-     * </pre>
-     *
-     * <h3>Validation Rules:</h3>
-     * <ul>
-     *   <li><b>to:</b> Must be a valid email format (e.g., user@domain.com)</li>
-     *   <li><b>subject:</b> Cannot be empty or null</li>
-     *   <li><b>message:</b> Cannot be empty or null</li>
-     * </ul>
-     *
-     * <h3>Return Value:</h3>
-     * <p>Returns the unique ID assigned by the email service provider (Resend).</p>
-     *
-     * <h3>Exceptions:</h3>
-     * <ul>
-     *   <li>{@code IllegalArgumentException} if any parameter is invalid</li>
-     *   <li>{@code EmailServiceException} if email sending fails</li>
-     * </ul>
-     *
-     * <h3>Security Recommendations:</h3>
-     * <ul>
-     *   <li>Add {@code @Valid} annotation and validation annotations to parameters</li>
-     *   <li>Implement CSRF protection</li>
-     *   <li>Add request rate limiting</li>
-     *   <li>Consider using {@code @PostMapping} with a DTO body instead of query parameters</li>
-     * </ul>
-     *
-     * @param to      recipient's email address (required)
-     * @param subject email subject line (required)
-     * @param message email message body (required)
-     * @return success message with the email ID from the email service
-     */
     @PostMapping("/send")
-    public String sendEmail(@RequestParam String to,
-                            @RequestParam String subject,
-                            @RequestParam String message) {
-
-        String html = String.format("""
+    public String sendEmail(@RequestBody EmailDtoOne request) {
+        String html = """
                 <h2>Test Email</h2>
                 <p>%s</p>
-                """, message);
+                """;
+        return emailService.sendSimpleEmail(request.getEmail(), request.getCode(), html);
+    }
 
-        String emailId = emailService.sendSimpleEmail(to, subject, html);
-        return "Email sent! ID: " + emailId;
+    @PostMapping("/login")
+    public String send(@RequestBody EmailDtoTwo request) {
+        String html = """
+                <h2>Test Email</h2>
+                <p>%s</p>
+                """;
+        return emailService.sendEmail(request, html);
     }
 }

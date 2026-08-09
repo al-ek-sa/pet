@@ -1,7 +1,6 @@
 package org.example.authservice.gmail.servise;
 
 import lombok.RequiredArgsConstructor;
-import org.example.authservice.bd.entity.User;
 import org.springframework.stereotype.Service;
 
 /**
@@ -104,16 +103,14 @@ import org.springframework.stereotype.Service;
  *
  * @author Lishyk Aliaksandra
  * @version 1.0
- * @see org.example.authservice.bd.service.UserService
  * @see org.example.authservice.gmail.servise.EmailService
  * @see org.springframework.stereotype.Service
  */
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceEmail {
 
     private final EmailService emailService;
-    private final UserService userService;
 
     /**
      * Registers a new user in the system and sends a welcome email.
@@ -154,7 +151,6 @@ public class AuthService {
      * the registration process.</p>
      *
      * @throws IllegalArgumentException if user or user.getEmail() is null
-     * @see org.example.authservice.bd.service.UserService#save(User)
      * @see org.example.authservice.gmail.servise.EmailService#sendSimpleEmail(String, String, String)
      */
     public void registerUser(String code, String email) {

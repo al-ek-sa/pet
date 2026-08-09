@@ -2,13 +2,14 @@ package org.example.authservice.bd.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.authservice.bd.config.SecurityConfigPassword;
 import org.example.authservice.bd.entity.User;
 import org.example.authservice.bd.repository.UserRepository;
+import org.example.authservice.dto.DtoUser;
 import org.example.authservice.dto.LoginName;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,12 +20,12 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserRepository repository;
-    private final SecurityConfigPassword securityConfig;
+    private final PasswordEncoder encoder;
 
     /**это для входа(сделать без передачи пароля с бд)**/
     public String findByLoginAndPassword(String login, String password) {
         Optional<LoginName> user = repository.findByLoginNativePassword(login);
-        if (!securityConfig.passwordEncoder().matches(password, user.get().getPassword())) {
+        if (!encoder.matches(password, user.get().getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
         return user.get().getUserName();
@@ -41,8 +42,13 @@ public class AuthService {
     }
 
     /**создание нового пользователя при регистрации**/
-    public UUID saveUser(User user){
-        user.setPassword(securityConfig.passwordEncoder().encode(user.getPassword()));
+    public UUID saveUser(DtoUser dtoUser){
+        User user = new User();
+        user.setPassword(dtoUser.getPassword());
+        user.setLogin(dtoUser.getLogin());
+        user.setEmail(dtoUser.getEmail());
+        user.setUserName(dtoUser.getUserName());
+        user.setPassword(encoder.encode(user.getPassword()));
         return repository.save(user).getId();
     }
 }

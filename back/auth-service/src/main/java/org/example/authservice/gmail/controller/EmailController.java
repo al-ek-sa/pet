@@ -87,19 +87,11 @@ public class EmailController {
 
     @PostMapping("/send")
     public String sendEmail(@RequestBody EmailDtoOne request) {
-        String html = """
-                <h2>Test Email</h2>
-                <p>%s</p>
-                """;
-        return emailService.sendSimpleEmail(request.getEmail(), request.getCode(), html);
+        return emailService.sendSimpleEmail(request.getEmail(), request.getCode(), request.getHtml());
     }
 
     @PostMapping("/login")
     public String send(@RequestBody EmailDtoTwo request) {
-        String html = """
-                <h2>Test Email</h2>
-                <p>%s</p>
-                """;
-        return emailService.sendEmail(request, html);
+        return emailService.sendEmail(request, request.getHtml());
     }
 }

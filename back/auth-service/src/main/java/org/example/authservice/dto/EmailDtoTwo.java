@@ -7,4 +7,5 @@ public class EmailDtoTwo {
     private String login;
     private String code;
     private String email;
+    private String html;
 }

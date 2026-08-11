@@ -6,4 +6,5 @@ import lombok.Data;
 public class EmailDtoOne {
     private String email;
     private String code;
+    private String html;
 }
